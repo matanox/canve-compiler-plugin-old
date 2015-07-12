@@ -1,0 +1,4 @@
+<plugin>
+    <name>extractor</name>
+    <classname>extractor.plugin.RuntimePlugin</classname>
+</plugin>
