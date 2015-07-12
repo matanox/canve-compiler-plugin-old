@@ -8,8 +8,10 @@ version := "0.0.1"
 scalaVersion  := "2.11.6"
 
 libraryDependencies ++= Seq(
-  "com.lihaoyi" %% "utest" % "0.1.4" % "test",
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
+  "com.typesafe.play" %% "play-json" % "2.4.1",
+  "org.apache.commons" % "commons-io" % "1.3.2",
+  "com.lihaoyi" %% "utest" % "0.1.4" % "test"
 )
 
 testFrameworks += new TestFramework("utest.runner.JvmFramework")
