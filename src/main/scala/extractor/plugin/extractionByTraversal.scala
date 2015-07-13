@@ -88,16 +88,16 @@ object DependencyExtraction{
       }
     }
     
-    def newTraverse() = {
-      val traverser = new ExtractAll(None)
-      traverser.traverse(unit.body)
-    }
+    val traverser = new ExtractAll(None)
+    traverser.traverse(unit.body)
     
-    newTraverse()
-    Nodes.list.map(node => println(node._2))
-    println("total " + Nodes.list.size + " nodes")
     println
-    Edges.list.map(println)
+    //Nodes.list.map(node => println(node._2))
+    println("total " + Nodes.list.size + " nodes")
+    //Edges.list.map(println)
     println("total " + Edges.list.size + " edges")
+    Output.write
+    
+    Unit // this statement guards against a compiler crash
   }
 }

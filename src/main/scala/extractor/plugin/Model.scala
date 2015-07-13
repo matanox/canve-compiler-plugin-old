@@ -23,6 +23,6 @@ case class Edge(id1: Int,
                 
 case class Node(id: Int,
                 name: String,
-                kind: String) 
+                kind: String)  
 
-                
+                      
