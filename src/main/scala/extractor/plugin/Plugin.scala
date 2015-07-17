@@ -9,6 +9,7 @@ class TestPlugin(val global: Global) extends tools.nsc.plugins.Plugin {
   val description = "extracts type relationships and call graph"
 
   val components = List[tools.nsc.plugins.PluginComponent](
+    //new SourcePluginPhase(this.global) 
     new PluginPhase(this.global)
   )
 }

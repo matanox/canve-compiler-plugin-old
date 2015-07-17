@@ -23,7 +23,7 @@ class PluginPhase(val global: Global)
   override def newPhase(prev: Phase): Phase = new Phase(prev) {
     override def run() {
       units.foreach { unit =>
-        println("* examining " + unit.source.path)
+        println("\n* examining " + unit.source.path + "\n")
         DependencyExtraction(t.global)(unit)  
       }
     }
