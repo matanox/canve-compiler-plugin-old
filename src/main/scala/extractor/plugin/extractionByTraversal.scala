@@ -5,12 +5,13 @@ object DependencyExtraction{
   
   def apply(global: Global)(unit: global.CompilationUnit) = {
     import global._
-
+    
     def ownerChain(symbol: Symbol): Unit = {
       val owner = symbol.owner
-      //println("=| " + owner + " " + owner.id + " owns " + symbol + " " + symbol.id + " |=")
-      Nodes(owner.id, owner.nameString, owner.keyString)
-      Edges(owner.id, "declares member", symbol.id)
+      if (Nodes(owner.id, owner.nameString, owner.kindString)) {
+        Edges(owner.id, "declares member", symbol.id)
+        println(owner + " xdeclares " + symbol)
+      }
       if (symbol.owner.nameString != "<root>") {
         ownerChain(symbol.owner) 
       }
@@ -82,13 +83,13 @@ object DependencyExtraction{
 
                         )
                 
-                Nodes(select.symbol.id, select.symbol.nameString, select.symbol.keyString)
+                Nodes(select.symbol.id, select.symbol.nameString, select.symbol.kindString)
                 ownerChain(select.symbol)        
                         
                 //source(select, Console.YELLOW)
               case _ =>
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
-                println(defParent.getOrElse("root") + " uses: " + select.symbol + " of type " + select.symbol.tpe.typeSymbol)
+                println(defParent.getOrElse("root") + " uses: " + select.symbol + " (" + select.symbol.id + ")" + " of type " + select.symbol.tpe.typeSymbol)
                 
                 ownerChain(select.symbol)
                 //source(select, Console.YELLOW)
@@ -107,11 +108,21 @@ object DependencyExtraction{
           case ident: Ident => //println(ident.symbol)
           case typeTree: TypeTree  => // are we missing something by not handling this?
           
+          case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) =>
+            // for catching val definitions rather than their automatic accessor methods..
+            val s = tree.symbol
+            
+            Nodes(s.id, s.nameString, s.kindString)
+            Edges(defParent.get.id, "has own value", s.id)
+            
+            println(defParent.get.id + " has own value: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
+            
+            
           case DefDef(mods, name, tparams, vparamss, tpt, rhs) =>
             val s = tree.symbol
             
-            Nodes(s.id, s.nameString, s.keyString)
-            Edges(defParent.get.id, "declares member", s.id)
+            if (Nodes(s.id, s.nameString, s.kindString))
+              Edges(defParent.get.id, "declares member", s.id)
             
             println(defParent.get.id + " declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
             
@@ -121,11 +132,11 @@ object DependencyExtraction{
           case Template(parents, self, body) =>
 
             val ts = tree.tpe.typeSymbol
-            Nodes(ts.id, ts.nameString, ts.keyString)
+            Nodes(ts.id, ts.nameString, ts.kindString)
             
             val parentTypeSymbols = parents.map(parent => parent.tpe.typeSymbol).toSet
             parentTypeSymbols.foreach(s => 
-              Nodes(s.id, s.nameString, s.keyString))
+              Nodes(s.id, s.nameString, s.kindString))
 
             if (defParent.isDefined) Edges(ts.id, "owned by", defParent.get.id)  
               
@@ -133,11 +144,11 @@ object DependencyExtraction{
               Edges(ts.id, "extends", s.id))
 
             println
-            println(tree.tpe.typeSymbol.keyString + " " + tree.tpe.typeSymbol.nameString + " (" + tree.tpe.typeSymbol.id + ") ")
+            println(tree.tpe.typeSymbol.kindString + " " + tree.tpe.typeSymbol.nameString + " (" + tree.tpe.typeSymbol.id + ") ")
             //sourceSpan(tree)
             ownerChain(ts)
             
-            parentTypeSymbols.foreach(s => println("extends: " + s.keyString + " " + s.nameString + " (" + s.id + ") "))
+            parentTypeSymbols.foreach(s => println("extends: " + s.kindString + " " + s.nameString + " (" + s.id + ") "))
             
             //tree.tpe.declarations.foreach(s => println("declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")) // TODO: need to deduplicate these
             
