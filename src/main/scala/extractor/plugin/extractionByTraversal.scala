@@ -82,12 +82,15 @@ object DependencyExtraction{
 
                         )
                 
+                Nodes(select.symbol.id, select.symbol.nameString, select.symbol.keyString)
                 ownerChain(select.symbol)        
                         
                 //source(select, Console.YELLOW)
               case _ =>
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                 println(defParent.getOrElse("root") + " uses: " + select.symbol + " of type " + select.symbol.tpe.typeSymbol)
+                
+                ownerChain(select.symbol)
                 //source(select, Console.YELLOW)
             }
             
@@ -111,7 +114,6 @@ object DependencyExtraction{
             Edges(defParent.get.id, "declares member", s.id)
             
             println(defParent.get.id + " declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
-            //sourceSpan(tree, Console.GREEN)
             
             val traverser = new ExtractAll(Some(tree.symbol))
             traverser.traverse(rhs)
@@ -133,7 +135,8 @@ object DependencyExtraction{
             println
             println(tree.tpe.typeSymbol.keyString + " " + tree.tpe.typeSymbol.nameString + " (" + tree.tpe.typeSymbol.id + ") ")
             //sourceSpan(tree)
-            if (defParent.isDefined) println("is owned by " + defParent.get.id)
+            ownerChain(ts)
+            
             parentTypeSymbols.foreach(s => println("extends: " + s.keyString + " " + s.nameString + " (" + s.id + ") "))
             
             //tree.tpe.declarations.foreach(s => println("declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")) // TODO: need to deduplicate these
