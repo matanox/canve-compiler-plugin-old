@@ -1,13 +1,15 @@
 package extractor.plugin
+import tools.nsc.Global
 
 object Nodes {
   
   var list: Map[Int, Node] = Map()
 
-  def apply(id: Int, name: String, kind: String): Boolean = {
-    if (list.contains(id)) false else 
+  def apply(global: Global)(s: global.Symbol): Boolean = {
+    if (list.contains(s.id)) false else 
     {
-      list += (id -> Node(id, name, kind))
+      list += (s.id -> Node(s.id, s.nameString, s.kindString))
+      SourceExtract(global)(s)
       true
     }
   }
@@ -29,5 +31,3 @@ case class Edge(id1: Int,
 case class Node(id: Int,
                 name: String,
                 kind: String)  
-
-                      

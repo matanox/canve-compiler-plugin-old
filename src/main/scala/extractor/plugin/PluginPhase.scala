@@ -23,8 +23,11 @@ class PluginPhase(val global: Global)
   override def newPhase(prev: Phase): Phase = new Phase(prev) {
     override def run() {
       units.foreach { unit =>
-        println("\n* examining " + unit.source.path + "\n")
-        DependencyExtraction(t.global)(unit)  
+        if (unit.source.path.endsWith(".scala")) {
+          println("\n* examining " + unit.source.path + "\n")
+          DependencyExtraction(t.global)(unit)  
+        } else
+            println("\n* skipping non-scala source file: " + unit.source.path + "\n")
       }
     }
 

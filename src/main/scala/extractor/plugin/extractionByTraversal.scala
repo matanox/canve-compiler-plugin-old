@@ -4,11 +4,11 @@ import scala.tools.nsc.Global
 object DependencyExtraction{
   
   def apply(global: Global)(unit: global.CompilationUnit) = {
-    import global._
-
+    import global._                      // to have access to typed symbol methods
+    
     def ownerChain(symbol: Symbol): Unit = {
       val owner = symbol.owner
-      if (Nodes(owner.id, owner.nameString, owner.kindString)) {
+      if (Nodes(global)(owner)) {
         Edges(owner.id, "declares member", symbol.id)
         println(owner + " xdeclares " + symbol)
       }
@@ -26,110 +26,9 @@ object DependencyExtraction{
       }
     }
     
-    def sourceSpan(tree: Tree, color: String = Console.BLUE) = {
-
-      val traverser = new ExtractSourceSpan
-      traverser.traverse(tree)
-      println
-            
-      /*
-      val symbol = tree.symbol
-      println(color + Console.BOLD + "source file: " + symbol.pos.source)
-      println("source file full path: " + symbol.sourceFile)  
-      println("line: " + symbol.pos.line)  
-      println("line: " + symbol.pos.lineContent)  
-      if (symbol.pos.isRange) println("range start: " + symbol.pos.start + " end: " + symbol.pos.end)
-      
-      //println(unit.body)
-      
-      //tree.children.foreach(t => println(t.pos.lineContent))
-      
-      //unit.echo(symbol.pos, "blaaaaaaaaaaa")
-      
-      println(Console.RESET)
-      */
-    }
-    
     class ExtractAll(defParent: Option[global.Symbol]) extends Traverser {
       override def traverse(tree: Tree): Unit = {
-
-        def extractSource(symbol: Symbol) = {
-          
-          def getSourceBlock(source: Iterator[String]): List[String] = {
             
-            def getStartCol(s: String) = s.indexWhere(c => c !=' ')
-
-            var body: List[String] = List(source.next)
-            var done = false
-            
-            var inBracesNest  = 0
-            var inQuote       = false
-            
-            val initialStartCol = getStartCol(body.head)
-            
-            while(source.hasNext && !done) {
-              val line = source.next
-              val startCol = getStartCol(line)
-              
-              if (startCol > initialStartCol) {  
-                
-                for (char <- line) // keep track of block nesting level,
-                                   // in case we want to use it later
-                  if (!inQuote) char match {
-                  case '{' => inBracesNest += 1
-                  case '}' => inBracesNest -= 1
-                  case '"' => inQuote = !inQuote
-                  case _ =>
-                  }
-
-                body = body :+ line                         // consider a line further indented as belonging
-                
-              }
-              else if (startCol == initialStartCol) 
-                if (line(startCol) == '}') {         // consider first closing brace at initial indentation column
-                                                     // as the last line to belong
-                  body = body :+ line
-                  done = true
-                }
-                else 
-                  done = true                        // a line that is indented same as the initial indentation
-                                                     // indentation, but doesn't brace-close it, means we're done
-                                                     // (e.g. think a case class without an explicit body)
-            }
-            body
-            
-          }
-          
-          if (symbol.sourceFile != null) {
-            val source = symbol.sourceFile.toString
-            val line   = symbol.pos.line
-            val column = symbol.pos.column
-            
-            val sourceCode = scala.io.Source.fromFile(source).getLines
-            val (sourceIterator1, sourceIterator2) = sourceCode.duplicate
-            val defLine = sourceIterator1.toArray.apply(line-1)
-            
-            val block = getSourceBlock(sourceIterator2.drop(line-1))
-            
-            println(Console.BLUE + Console.BOLD)
-            println("file   =| " + "file://" + source)
-            println("symbol =| " + symbol)
-            println("line   =| " + line)
-            println("column =| " + column)
-            println
-            if (!symbol.nameString.contains("$anon"))
-              println(" " * defLine.indexWhere(c => c !=' ') + "v ")
-            else 
-              println(" " * defLine.indexWhere(c => c !=' ') + "v ")
-            println(defLine)
-            println(symbol.pos.lineCaret)
-            //println(defLine.indexWhere(c => c !=' '))
-            println(Console.RESET)
-
-            println(block.mkString("\n"))
-          }
-        }
-    
         tree match {
           case i @ Import(expr, selectors) =>
             selectors.foreach {
@@ -160,8 +59,7 @@ object DependencyExtraction{
 
                         )
           
-                extractSource(select.symbol)
-                Nodes(select.symbol.id, select.symbol.nameString, select.symbol.kindString)
+                Nodes(global)(select.symbol)
                 ownerChain(select.symbol)        
                         
                 //source(select, Console.YELLOW)
@@ -169,8 +67,7 @@ object DependencyExtraction{
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                 println(defParent.getOrElse("root") + " uses: " + select.symbol + " (" + select.symbol.id + ")" + " of type " + select.symbol.tpe.typeSymbol)
                 
-                extractSource(select.symbol)
-                Nodes(select.symbol.id, select.symbol.nameString, select.symbol.kindString)
+                Nodes(global)(select.symbol)
                 ownerChain(select.symbol)
                 //source(select, Console.YELLOW)
             }
@@ -192,9 +89,7 @@ object DependencyExtraction{
           case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) =>
             val s = tree.symbol
             
-            extractSource(s)
-            
-            Nodes(s.id, s.nameString, s.kindString)
+            Nodes(global)(s)
             Edges(defParent.get.id, "has own value", s.id)
             
             println(defParent.get.id + " has own value: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
@@ -206,9 +101,7 @@ object DependencyExtraction{
           case DefDef(mods, name, tparams, vparamss, tpt, rhs) =>
             val s = tree.symbol
             
-            extractSource(s)
-            
-            if (Nodes(s.id, s.nameString, s.kindString))
+            if (Nodes(global)(s))
               Edges(defParent.get.id, "declares member", s.id)
             
             println(defParent.get.id + " declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
@@ -220,13 +113,11 @@ object DependencyExtraction{
 
             val ts = tree.tpe.typeSymbol
             
-            extractSource(ts)
-            
-            Nodes(ts.id, ts.nameString, ts.kindString)
+            Nodes(global)(ts)
             
             val parentTypeSymbols = parents.map(parent => parent.tpe.typeSymbol).toSet
             parentTypeSymbols.foreach(s => 
-              Nodes(s.id, s.nameString, s.kindString))
+              Nodes(global)(s))
 
             if (defParent.isDefined) Edges(ts.id, "owned by", defParent.get.id)  
               
