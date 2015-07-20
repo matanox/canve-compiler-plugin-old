@@ -1,7 +1,7 @@
 package extractor.plugin
 import scala.tools.nsc.Global
 
-object DependencyExtraction{
+object TraversalExtraction{
   
   def apply(global: Global)(unit: global.CompilationUnit) = {
     import global._                      // to have access to typed symbol methods

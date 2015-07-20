@@ -25,7 +25,7 @@ class PluginPhase(val global: Global)
       units.foreach { unit =>
         if (unit.source.path.endsWith(".scala")) {
           println("\n* examining " + unit.source.path + "\n")
-          DependencyExtraction(t.global)(unit)  
+          TraversalExtraction(t.global)(unit)  
         } else
             println("\n* skipping non-scala source file: " + unit.source.path + "\n")
       }
