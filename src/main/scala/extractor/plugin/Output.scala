@@ -8,7 +8,10 @@ object Output {
   
   def write = {
     println("Writing extracted type relations and call graph....")
-    myUtil.fileUtil.writeOutputFile("nodes", Nodes.list.map(_._2.toString).mkString("\n"))
+    myUtil.fileUtil.writeOutputFile("nodes", Nodes.list.map { node =>
+      List(node._2.id, node._2.name, node._2.kind).mkString(",")}.mkString("\n"))
+   
+      
     myUtil.fileUtil.writeOutputFile("edges", Edges.list.mkString("\n"))
     
     // see https://github.com/cpettitt/graphlib/wiki for Dagre graph specification
@@ -33,5 +36,9 @@ object Output {
                        "edgeKind: " + "\"" + edge.edgeKind + "\"" + 
                      " });")
           .mkString("\n"))
+          
+    Nodes.list.map(_._2).foreach(node =>
+      myUtil.fileUtil.writeOutputFile("node-source-" + node.id, node.source.mkString("\n") + "\n"))
   }
+  
 }

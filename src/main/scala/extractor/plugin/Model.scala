@@ -8,8 +8,7 @@ object Nodes {
   def apply(global: Global)(s: global.Symbol): Boolean = {
     if (list.contains(s.id)) false else 
     {
-      list += (s.id -> Node(s.id, s.nameString, s.kindString))
-      SourceExtract(global)(s)
+      list += (s.id -> Node(s.id, s.nameString, s.kindString, SourceExtract(global)(s)))
       true
     }
   }
@@ -30,4 +29,5 @@ case class Edge(id1: Int,
                 
 case class Node(id: Int,
                 name: String,
-                kind: String)  
+                kind: String,
+                source: List[String])  

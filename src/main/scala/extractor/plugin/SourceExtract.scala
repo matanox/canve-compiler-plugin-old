@@ -49,33 +49,23 @@ object SourceExtract {
       
     }
     
-    if (symbol.sourceFile != null) {
-      val source = symbol.sourceFile.toString
-      val line   = symbol.pos.line
-      val column = symbol.pos.column
-      
-      val sourceCode = scala.io.Source.fromFile(source).getLines
-      val (sourceIterator1, sourceIterator2) = sourceCode.duplicate
-      val defLine = sourceIterator1.toArray.apply(line-1)
-      
-      val block = getSourceBlock(sourceIterator2.drop(line-1))
-      
-      println(Console.BLUE + Console.BOLD)
-      println("file   =| " + "file://" + source)
-      println("symbol =| " + symbol)
-      println("line   =| " + line)
-      println("column =| " + column)
-      println
-      if (!symbol.nameString.contains("$anon"))
-        println(" " * defLine.indexWhere(c => c !=' ') + "v ")
-      else 
-        println(" " * defLine.indexWhere(c => c !=' ') + "v ")
-      println(defLine)
-      //println(symbol.pos.lineCarat)
-      //println(defLine.indexWhere(c => c !=' '))
-      println(Console.RESET)
-
-      println(block.mkString("\n"))
-    }
+    symbol.sourceFile match {
+      case null => 
+        List.empty[String]
+      case _    =>
+        val source = symbol.sourceFile.toString
+        val line   = symbol.pos.line
+        val column = symbol.pos.column
+        
+        val sourceCode = scala.io.Source.fromFile(source).getLines
+        val (sourceIterator1, sourceIterator2) = sourceCode.duplicate
+        val defLine = sourceIterator1.toArray.apply(line-1)
+        
+        val block = getSourceBlock(sourceIterator2.drop(line-1))
+        
+        println(Console.BLUE + Console.BOLD + defLine)
+        println(symbol.pos.lineCaret + Console.RESET)
+        block
+    } 
   }
 }
