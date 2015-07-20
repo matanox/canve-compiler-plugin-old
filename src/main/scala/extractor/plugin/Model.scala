@@ -6,12 +6,6 @@ object Nodes {
 
   def apply(id: Int, name: String, kind: String): Boolean = {
     if (list.contains(id)) false else 
-    if (name.startsWith("apply$default$")) false else // skip synthetic methods created by scala for 
-                                                      // default argument values. This is only one case
-                                                      // of a bunch where scala creates synthetic entities,
-                                                      // it is not necessarily a good idea to skip them,
-                                                      // as many of them can contain children that contain
-                                                      // stuff that *should* be part of the result graphs
     {
       list += (id -> Node(id, name, kind))
       true
