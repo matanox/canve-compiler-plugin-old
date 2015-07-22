@@ -15,7 +15,7 @@ import scala.tools.nsc.io.Directory
 
 object fileUtil {  
   
-  val outDir = "out"
+  val outDir = "cae-data"
   
   createDir(outDir)
   

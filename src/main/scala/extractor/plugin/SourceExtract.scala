@@ -63,8 +63,8 @@ object SourceExtract {
         
         val block = getSourceBlock(sourceIterator2.drop(line-1))
         
-        println(Console.BLUE + Console.BOLD + defLine)
-        println(symbol.pos.lineCaret + Console.RESET)
+        println(Console.BLUE + Console.BOLD + defLine + Console.RESET)
+        //println(symbol.pos.lineCaret + Console.RESET)
         block
     } 
   }
