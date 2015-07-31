@@ -5,11 +5,15 @@ object Nodes {
   
   var list: Map[Int, Node] = Map()
 
-  def apply(global: Global)(s: global.Symbol): Boolean = {
-    if (list.contains(s.id)) false else 
+  def apply(global: Global)(s: global.Symbol): Node = {
+    
+    if (list.contains(s.id))
+      list.get(s.id).get
+    else
     {
-      list += (s.id -> Node(s.id, s.nameString, s.kindString, SourceExtract(global)(s)))
-      true
+      val newNode = Node(s.id, s.nameString, s.kindString, SourceExtract(global)(s))
+      list += (s.id -> newNode)
+      newNode
     }
   }
   
@@ -30,4 +34,6 @@ case class Edge(id1: Int,
 case class Node(id: Int,
                 name: String,
                 kind: String,
-                source: List[String])  
+                source: List[String]) {
+  var ownersTraversed = false
+}  

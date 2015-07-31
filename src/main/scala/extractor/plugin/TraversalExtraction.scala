@@ -6,14 +6,18 @@ object TraversalExtraction{
   def apply(global: Global)(unit: global.CompilationUnit) = {
     import global._                      // to have access to typed symbol methods
     
-    def ownerChain(symbol: Symbol): Unit = {
-      val owner = symbol.owner
-      if (Nodes(global)(owner)) {
-        Edges(owner.id, "declares member", symbol.id)
-        println(owner + " xdeclares " + symbol)
-      }
-      if (symbol.owner.nameString != "<root>") {
-        ownerChain(symbol.owner) 
+    def ownerChain(node: Node, symbol: Symbol): Unit = {
+      if (!node.ownersTraversed)
+      {
+        println("nameString = " + symbol.nameString)
+        println(symbol.nameString != "<root>")
+        if (symbol.nameString != "<root>") {
+          val ownerSymbol = symbol.owner
+          val ownerNode = Nodes(global)(ownerSymbol)
+          Edges(symbol.owner.id, "declares member", symbol.id)
+          ownerChain(ownerNode, ownerSymbol) 
+          node.ownersTraversed = true
+        }
       }
     }
     
@@ -59,16 +63,16 @@ object TraversalExtraction{
 
                         )
           
-                Nodes(global)(select.symbol)
-                ownerChain(select.symbol)        
+                val node = Nodes(global)(select.symbol)
+                ownerChain(node, select.symbol)        
                         
                 //source(select, Console.YELLOW)
               case _ =>
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                 println(defParent.getOrElse("root") + " uses: " + select.symbol + " (" + select.symbol.id + ")" + " of type " + select.symbol.tpe.typeSymbol)
                 
-                Nodes(global)(select.symbol)
-                ownerChain(select.symbol)
+                val node = Nodes(global)(select.symbol)
+                ownerChain(node, select.symbol)
                 //source(select, Console.YELLOW)
             }
             
@@ -90,7 +94,7 @@ object TraversalExtraction{
             val s = tree.symbol
             
             Nodes(global)(s)
-            Edges(defParent.get.id, "has own value", s.id)
+            Edges(defParent.get.id, "declares member", s.id)
             
             println(defParent.get.id + " has own value: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
             
@@ -101,8 +105,8 @@ object TraversalExtraction{
           case DefDef(mods, name, tparams, vparamss, tpt, rhs) =>
             val s = tree.symbol
             
-            if (Nodes(global)(s))
-              Edges(defParent.get.id, "declares member", s.id)
+            Nodes(global)(s)
+            Edges(defParent.get.id, "declares member", s.id)
             
             println(defParent.get.id + " declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
             
@@ -113,21 +117,27 @@ object TraversalExtraction{
 
             val ts = tree.tpe.typeSymbol
             
-            Nodes(global)(ts)
+            if (ts.nameString == "Serializable") println("Serializable found - " + ts.id)
+            if (ts.kindString == "trait") println("trait found - " + ts.id + ' ' + ts.nameString)
+            
+            val node = Nodes(global)(ts)
+            ownerChain(node, ts)
             
             val parentTypeSymbols = parents.map(parent => parent.tpe.typeSymbol).toSet
-            parentTypeSymbols.foreach(s => 
-              Nodes(global)(s))
+            parentTypeSymbols.foreach { s => 
+              val parentNode = Nodes(global)(s)
+              ownerChain(parentNode, s)
+            }
 
-            if (defParent.isDefined) Edges(ts.id, "owned by", defParent.get.id)  
+            if (defParent.isDefined) Edges(ts.id, "owned by", defParent.get.id) // TODO: move up for readability
               
             parentTypeSymbols.foreach(s => 
               Edges(ts.id, "extends", s.id))
+              
 
             println
             println(tree.tpe.typeSymbol.kindString + " " + tree.tpe.typeSymbol.nameString + " (" + tree.tpe.typeSymbol.id + ") ")
             //sourceSpan(tree)
-            ownerChain(ts)
             
             parentTypeSymbols.foreach(s => println("extends: " + s.kindString + " " + s.nameString + " (" + s.id + ") "))
             
