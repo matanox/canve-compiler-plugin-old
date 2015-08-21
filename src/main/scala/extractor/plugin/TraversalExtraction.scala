@@ -64,6 +64,24 @@ object TraversalExtraction{
                         )
           
                 val node = Nodes(global)(select.symbol)
+                
+                // record the location where the method is being called - 
+                // for making that available to the UI.
+                // this is a proof of concept, that only logs it to the console for now.
+                if (defParent.isDefined) {
+                  val callingSymbol = defParent.get
+                  callingSymbol.sourceFile match {
+                    case null => 
+                      List.empty[String]
+                      // TODO: indicate no source for this one
+                    case _    =>
+                      val source = callingSymbol.sourceFile.toString
+                      val line   = select.pos.line
+                      val column = select.pos.column
+                      println("source location of usage of symbol " + select.symbol.nameString + ": " + source + " " + line + "," + column)
+                  }
+                }
+                
                 ownerChain(node, select.symbol)        
                         
                 //source(select, Console.YELLOW)
@@ -90,14 +108,20 @@ object TraversalExtraction{
           case typeTree: TypeTree  => // are we missing something by not handling this?
           
           // Captures val definitions rather than their automatic accessor methods..
+          // This includes capturing the val's type (not kind) - the one that the val instantiates.
           case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) =>
             val s = tree.symbol
             
             Nodes(global)(s)
             Edges(defParent.get.id, "declares member", s.id)
             
-            println(defParent.get.id + " has own value: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
+            val valueType = s.tpe.typeSymbol // the type that this val instantiates.
+            val node = Nodes(global)(valueType)
+            ownerChain(node, valueType)
             
+            Edges(s.id, "is of type", valueType.id)
+            
+            println(defParent.get.id + " has own value: " + s.kindString + " " + s.nameString + " (" + s.id + ") of type " + valueType.id)
             
           // Capture defs of methods.
           // Note this will also capture default constructors synthesized by the compiler

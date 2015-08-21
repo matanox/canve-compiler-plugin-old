@@ -57,15 +57,23 @@ object SourceExtract {
         val line   = symbol.pos.line
         val column = symbol.pos.column
         
-        val sourceCode = scala.io.Source.fromFile(source).getLines
-        val (sourceIterator1, sourceIterator2) = sourceCode.duplicate
-        val defLine = sourceIterator1.toArray.apply(line-1)
+        println("source location of symbol " + symbol.nameString + ": " + source + " " + line + "," + column)
         
-        val block = getSourceBlock(sourceIterator2.drop(line-1))
-        
-        println(Console.BLUE + Console.BOLD + defLine + Console.RESET)
-        //println(symbol.pos.lineCaret + Console.RESET)
-        block
+        if (line == 0) { // because the compiler provides a line position 0 some times,
+                         // which can only be interpreted as no source being available...
+          List.empty[String]
+        }
+        else {
+          val sourceCode = scala.io.Source.fromFile(source).getLines
+          val (sourceIterator1, sourceIterator2) = sourceCode.duplicate
+          val defLine = sourceIterator1.toArray.apply(line-1)
+          
+          val block = getSourceBlock(sourceIterator2.drop(line-1))
+          
+          println(Console.BLUE + Console.BOLD + defLine + Console.RESET)
+          //println(symbol.pos.lineCaret + Console.RESET)
+          block
+        }
     } 
   }
 }

@@ -43,7 +43,8 @@ object Output {
           .mkString("\n"))
           
     Nodes.list.map(_._2).foreach(node =>
-      myUtil.fileUtil.writeOutputFile("node-source-" + node.id, node.source.mkString("\n") + "\n"))
+      myUtil.fileUtil.writeOutputFile("node-source-" + node.id, 
+                                      "< from source file " + node.fileName + " >\n\n" + node.source.mkString("\n") + "\n"))
   }
   
 }
