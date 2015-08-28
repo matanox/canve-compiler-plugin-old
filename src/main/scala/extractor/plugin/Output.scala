@@ -9,11 +9,17 @@ object Output {
   def write = {
     println("Writing extracted type relations and call graph....")
     myUtil.fileUtil.writeOutputFile("nodes",
-        "id,name,kind\n" +
+        "definition,id,name,kind\n" +
         Nodes.list.map { node =>
-          List(node._2.id, node._2.name, node._2.kind).mkString(",")}.mkString("\n"))
-   
-      
+          List(node._2.source match {
+                case Some(_) => "project"
+                case None    => "external"
+               },
+               node._2.id, 
+               node._2.name, 
+               node._2.kind)
+               .mkString(",")}.mkString("\n"))
+         
     myUtil.fileUtil.writeOutputFile("edges", 
         "id1,edgeKind,id2\n" +
         Edges.list.map { edge =>
@@ -43,8 +49,9 @@ object Output {
           .mkString("\n"))
           
     Nodes.list.map(_._2).foreach(node =>
-      myUtil.fileUtil.writeOutputFile("node-source-" + node.id, 
-                                      "< from source file " + node.fileName + " >\n\n" + node.source.mkString("\n") + "\n"))
+      if (node.source.isDefined)
+        myUtil.fileUtil.writeOutputFile("node-source-" + node.id, 
+                                        "< in file " + node.fileName.get + " >\n\n" + node.source.get.mkString("\n") + "\n"))
   }
   
 }

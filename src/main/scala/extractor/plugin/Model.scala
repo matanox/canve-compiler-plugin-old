@@ -11,12 +11,13 @@ object Nodes {
       list.get(s.id).get
     else
     {
-      val sourceFile = s.sourceFile match {
-        case null => "no source file included in this project for this entity"
-        case _    => s.sourceFile.toString
+      val newNode = s.sourceFile match {
+        case null => // no source file included in this project for this entity 
+          Node(s.id, s.nameString, s.kindString, None, None)
+        case _    => 
+          Node(s.id, s.nameString, s.kindString, SourceExtract(global)(s), Some(s.sourceFile.toString))
       }
       
-      val newNode = Node(s.id, s.nameString, s.kindString, SourceExtract(global)(s), sourceFile)
       list += (s.id -> newNode)
       newNode
     }
@@ -39,7 +40,7 @@ case class Edge(id1: Int,
 case class Node(id: Int,
                 name: String,
                 kind: String,
-                source: List[String],
-                fileName: String) {
+                source: Option[List[String]],
+                fileName: Option[String]) {
   var ownersTraversed = false
 }  

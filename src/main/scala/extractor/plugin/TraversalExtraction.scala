@@ -1,6 +1,13 @@
 package extractor.plugin
 import scala.tools.nsc.Global
 
+/*
+ * Note: it is documented in the source, that 
+ * a flag settings.Yshowsymowners, adds the symbol owner's id to the nameString.
+ * In case this is so, owner chains may be obtained more cheaply. Also note that
+ * some settings may skew the results of this code.
+ */
+
 object TraversalExtraction{
   
   def apply(global: Global)(unit: global.CompilationUnit) = {
@@ -9,8 +16,7 @@ object TraversalExtraction{
     def ownerChain(node: Node, symbol: Symbol): Unit = {
       if (!node.ownersTraversed)
       {
-        println("nameString = " + symbol.nameString)
-        println(symbol.nameString != "<root>")
+        println(symbol.nameString + " parents: " + symbol.parentSymbols.map(p => p.nameString + " (" + p.id + ")").mkString(","))
         if (symbol.nameString != "<root>") {
           val ownerSymbol = symbol.owner
           val ownerNode = Nodes(global)(ownerSymbol)

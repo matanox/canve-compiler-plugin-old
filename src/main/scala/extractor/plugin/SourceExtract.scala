@@ -51,7 +51,7 @@ object SourceExtract {
     
     symbol.sourceFile match {
       case null => 
-        List.empty[String]
+        None
       case _    =>
         val source = symbol.sourceFile.toString
         val line   = symbol.pos.line
@@ -61,7 +61,7 @@ object SourceExtract {
         
         if (line == 0) { // because the compiler provides a line position 0 some times,
                          // which can only be interpreted as no source being available...
-          List.empty[String]
+          Some(List.empty[String]) // but we return an empty list for doubt sake for now...
         }
         else {
           val sourceCode = scala.io.Source.fromFile(source).getLines
@@ -72,7 +72,7 @@ object SourceExtract {
           
           println(Console.BLUE + Console.BOLD + defLine + Console.RESET)
           //println(symbol.pos.lineCaret + Console.RESET)
-          block
+          Some(block)
         }
     } 
   }
