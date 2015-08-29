@@ -14,7 +14,6 @@ import java.nio.file.FileAlreadyExistsException
 import scala.tools.nsc.io.Directory
 
 object fileUtil {  
-  
   val outDir = "cae-data"
   
   createDir(outDir)

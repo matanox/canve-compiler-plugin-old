@@ -22,9 +22,14 @@ class PluginPhase(val global: Global)
 
   override def newPhase(prev: Phase): Phase = new Phase(prev) {
     override def run() {
+      
+      println("\n** running as part of project compilation ** \n")
+      
+      println(t.global.currentSettings)
+      
       units.foreach { unit =>
         if (unit.source.path.endsWith(".scala")) {
-          println("\n* examining " + unit.source.path + "\n")
+          println("\n* examining " + unit.source.path + "* \n")
           TraversalExtraction(t.global)(unit)  
         } else
             println("\n* skipping non-scala source file: " + unit.source.path + "\n")

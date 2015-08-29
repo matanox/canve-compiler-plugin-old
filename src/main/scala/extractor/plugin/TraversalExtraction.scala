@@ -58,17 +58,6 @@ object TraversalExtraction{
               case "method" =>
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                 
-                println(defParent.getOrElse("root") + " uses: " + select.symbol + " (" + select.symbol.id + ")" +  
-                        " of " + select.symbol.owner + " owned by " + select.symbol.owner.owner +
-                        " owned by " + select.symbol.owner.owner.owner +
-                        " (" + select.symbol.owner.owner.owner.id + ")" +
-                        select.symbol.owner.owner.owner.owner  
-                        + " (" + select.symbol.owner.owner.owner.owner.id + ")" +
-                        select.symbol.owner.owner.owner.owner.owner +  
-                        " (" + select.symbol.owner.owner.owner.owner.owner.id + ")" 
-
-                        )
-          
                 val node = Nodes(global)(select.symbol)
                 
                 // record the location where the method is being called - 

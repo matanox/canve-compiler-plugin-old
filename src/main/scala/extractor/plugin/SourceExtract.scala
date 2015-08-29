@@ -2,7 +2,7 @@ package extractor.plugin
 import tools.nsc.Global
 
 object SourceExtract {
-  def apply(global: Global)(symbol: global.Symbol) = {
+  def apply(global: Global)(symbol: global.Symbol): Option[List[String]] = {
 
     def getSourceBlock(source: Iterator[String]): List[String] = {
       
@@ -53,27 +53,29 @@ object SourceExtract {
       case null => 
         None
       case _    =>
+        
+        if (symbol.pos.toString == "NoPosition") return None // can happen for Scala 2.10 projects, 
+                                                             // or just when macros are involved.
+        
         val source = symbol.sourceFile.toString
         val line   = symbol.pos.line
         val column = symbol.pos.column
         
         println("source location of symbol " + symbol.nameString + ": " + source + " " + line + "," + column)
         
-        if (line == 0) { // because the compiler provides a line position 0 some times,
-                         // which can only be interpreted as no source being available...
-          Some(List.empty[String]) // but we return an empty list for doubt sake for now...
-        }
-        else {
-          val sourceCode = scala.io.Source.fromFile(source).getLines
-          val (sourceIterator1, sourceIterator2) = sourceCode.duplicate
-          val defLine = sourceIterator1.toArray.apply(line-1)
-          
-          val block = getSourceBlock(sourceIterator2.drop(line-1))
-          
-          println(Console.BLUE + Console.BOLD + defLine + Console.RESET)
-          //println(symbol.pos.lineCaret + Console.RESET)
-          Some(block)
-        }
+        if (line == 0) return None  // the compiler provides a line position 0 sometimes,
+                                    // whereas line numbers are confirmed to start from 1. 
+                                    // Hence we can't extract source here. 
+
+        val sourceCode = scala.io.Source.fromFile(source).getLines
+        val (sourceIterator1, sourceIterator2) = sourceCode.duplicate
+        val defLine = sourceIterator1.toArray.apply(line-1)
+        
+        val block = getSourceBlock(sourceIterator2.drop(line-1))
+        
+        println(Console.BLUE + Console.BOLD + defLine + Console.RESET)
+        //println(symbol.pos.lineCaret + Console.RESET)
+        Some(block)
     } 
   }
 }
