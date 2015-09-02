@@ -1,7 +1,6 @@
+organization  := "CANVE"
 
-organization  := "matanster"
-
-name := "extractor"
+name := "compiler-plugin"
 
 version := "0.0.1"
 
