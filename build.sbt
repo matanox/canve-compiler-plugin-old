@@ -1,4 +1,4 @@
-organization  := "CANVE"
+organization  := "canve"
 
 name := "compiler-plugin"
 

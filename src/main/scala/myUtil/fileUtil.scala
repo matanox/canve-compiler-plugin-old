@@ -14,15 +14,16 @@ import java.nio.file.FileAlreadyExistsException
 import scala.tools.nsc.io.Directory
 
 object fileUtil {  
-  val outDir = "cae-data"
+  val canveRoot = "canve-data"
   
-  createDir(outDir)
+  createDir(canveRoot)
   
   //
   // write string to file, overwriting if file already exists
   //
-  def writeOutputFile(fileName: String, fileText: String) {
-    scala.tools.nsc.io.File(outDir + "/" + fileName).writeAll(fileText)
+  def writeOutputFile(dir: String, fileName: String, fileText: String) {
+    createDir(canveRoot + "/" + dir)
+    scala.tools.nsc.io.File(canveRoot + "/" + dir + "/" + fileName).writeAll(fileText)
     //Files.write(Paths.get(outDir + "/" + fileName), fileText.getBytes(StandardCharsets.UTF_8))
   }
   

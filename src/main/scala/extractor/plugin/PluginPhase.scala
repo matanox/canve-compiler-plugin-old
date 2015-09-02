@@ -13,7 +13,7 @@ class PluginPhase(val global: Global)
 
   override val runsRightAfter = Some("typer")
   
-  val phaseName = "extractor"
+  val phaseName = "canve-extractor"
 
   def units = global.currentRun
                     .units
@@ -23,20 +23,20 @@ class PluginPhase(val global: Global)
   override def newPhase(prev: Phase): Phase = new Phase(prev) {
     override def run() {
       
-      println("\n** running as part of project compilation ** \n")
+      println("\ncanve extraction starting for project " + PluginArgs.projectName + "...")
       
-      println(t.global.currentSettings)
+      //println(t.global.currentSettings) 
       
       units.foreach { unit =>
         if (unit.source.path.endsWith(".scala")) {
-          println("\n* examining " + unit.source.path + "* \n")
+          println("canve examining source file" + unit.source.path + "...")
           TraversalExtraction(t.global)(unit)  
         } else
-            println("\n* skipping non-scala source file: " + unit.source.path + "\n")
+            println("canve skipping non-scala source file: " + unit.source.path)
       }
     }
 
-    def name: String = "extractor"
+    def name: String = "canve" 
   }
 
 }
