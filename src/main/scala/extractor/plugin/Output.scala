@@ -9,12 +9,13 @@ object Output {
   def write = {
     println("Writing extracted type relations and call graph....")
     myUtil.fileUtil.writeOutputFile(PluginArgs.projectName, "nodes",
-        "definition,id,name,kind\n" +
+        "definition,notSynthetic,id,name,kind\n" +
         Nodes.list.map { node =>
           List(node._2.source match {
                 case Some(_) => "project"
                 case None    => "external"
                },
+               node._2.notSynthetic,
                node._2.id, 
                node._2.name, 
                node._2.kind)

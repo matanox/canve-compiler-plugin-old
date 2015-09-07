@@ -11,11 +11,13 @@ object Nodes {
       list.get(s.id).get
     else
     {
+      //val a: List[global.Symbol] = s.ownerChain
+      println("OWNERCHAIN: " + s.ownerChain.map(_.id))
       val newNode = s.sourceFile match {
         case null => // no source file included in this project for this entity 
-          Node(s.id, s.nameString, s.kindString, None, None)
+          Node(s.id, s.nameString, s.kindString, !(s.isSynthetic), None, None)
         case _    => 
-          Node(s.id, s.nameString, s.kindString, SourceExtract(global)(s), Some(s.sourceFile.toString))
+          Node(s.id, s.nameString, s.kindString, !(s.isSynthetic), SourceExtract(global)(s), Some(s.sourceFile.toString))
       }
       
       list += (s.id -> newNode)
@@ -40,6 +42,7 @@ case class Edge(id1: Int,
 case class Node(id: Int,
                 name: String,
                 kind: String,
+                notSynthetic: Boolean,
                 source: Option[List[String]],
                 fileName: Option[String]) {
   var ownersTraversed = false
