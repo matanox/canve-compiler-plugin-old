@@ -26,20 +26,14 @@ object TraversalExtraction{
         }
       }
     }
-    
-    class ExtractSourceSpan extends Traverser {
-      override def traverse(tree: Tree): Unit = {
-        //println(Console.RED + Console.BOLD + tree.pos.isRange + Console.RESET)
-        println(Console.RED +  
-                "line " + tree.pos.line + ": " + 
-                Console.BOLD + tree.pos.lineContent + Console.RESET)
-      }
-    }
-    
+        
     class ExtractAll(defParent: Option[global.Symbol]) extends Traverser {
       override def traverse(tree: Tree): Unit = {
             
         tree match {
+          
+          // ignoring imports for now.. we get their symbols wherever they
+          // are used by the code, anyway.
           case i @ Import(expr, selectors) =>
             selectors.foreach {
               case ImportSelector(nme.WILDCARD, _, null, _) => // a wildcard import
@@ -51,7 +45,8 @@ object TraversalExtraction{
                 // importing a name means importing both a term and a type (if they exist)
                 // println(tree); println(lookupImported(name) + "(" + lookupImported(name).id + ")")
             }
-            
+
+          // captures member usage
           case select: Select =>
             select.symbol.kindString match {
               case "constructor" => // ignore
@@ -79,17 +74,13 @@ object TraversalExtraction{
                 
                 ownerChain(node, select.symbol)        
                         
-                //source(select, Console.YELLOW)
               case _ =>
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                 println(defParent.getOrElse("root") + " uses: " + select.symbol + " (" + select.symbol.id + ")" + " of type " + select.symbol.tpe.typeSymbol)
                 
                 val node = Nodes(global)(select.symbol)
                 ownerChain(node, select.symbol)
-                //source(select, Console.YELLOW)
             }
-            
-            //select.symbol.tpe.typeSymbol + " or rather of " + select.symbol.owner)
             
           /*
            * Idents are used in number of situations:
@@ -99,10 +90,10 @@ object TraversalExtraction{
            *    this looks fishy, see this thread:
            *    https://groups.google.com/d/topic/scala-internals/Ms9WUAtokLo/discussion
            */
-          case ident: Ident => //println(ident.symbol)
+          case ident: Ident => println("ident found: " + ident.symbol)
           case typeTree: TypeTree  => // are we missing something by not handling this?
           
-          // Captures val definitions rather than their automatic accessor methods..
+          // Captures val definitions (rather than their automatic accessor methods..)
           // This includes capturing the val's type (not kind) - the one that the val instantiates.
           case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) =>
             val s = tree.symbol
@@ -131,14 +122,12 @@ object TraversalExtraction{
             
             val traverser = new ExtractAll(Some(tree.symbol))
             traverser.traverse(rhs)
-            
+          
+          // Capture type definition (classes, traits, objects)
           case Template(parents, self, body) =>
 
             val ts = tree.tpe.typeSymbol
-            
-            if (ts.nameString == "Serializable") println("Serializable found - " + ts.id)
-            if (ts.kindString == "trait") println("trait found - " + ts.id + ' ' + ts.nameString)
-            
+                        
             val node = Nodes(global)(ts)
             ownerChain(node, ts)
             
