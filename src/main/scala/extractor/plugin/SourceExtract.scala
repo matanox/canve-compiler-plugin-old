@@ -31,7 +31,7 @@ object SourceExtract {
             case _ =>
             }
 
-          body = body :+ line                         // consider a line further indented as belonging
+          body = body :+ line                  // consider a line further indented as belonging
           
         }
         else if (startCol == initialStartCol) 
@@ -61,7 +61,7 @@ object SourceExtract {
         val line   = symbol.pos.line
         val column = symbol.pos.column
         
-        println("source location of symbol " + symbol.nameString + ": " + source + " " + line + "," + column)
+        //println("source location of symbol " + symbol.nameString + ": " + source + " " + line + "," + column)
         
         if (line == 0) return None  // the compiler provides a line position 0 sometimes,
                                     // whereas line numbers are confirmed to start from 1. 

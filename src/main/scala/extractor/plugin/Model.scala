@@ -11,8 +11,6 @@ object Nodes {
       list.get(s.id).get
     else
     {
-      //val a: List[global.Symbol] = s.ownerChain
-      println("OWNERCHAIN: " + s.ownerChain.map(_.id))
       val newNode = s.sourceFile match {
         case null => // no source file included in this project for this entity 
           Node(s.id, s.nameString, s.kindString, !(s.isSynthetic), None, None)

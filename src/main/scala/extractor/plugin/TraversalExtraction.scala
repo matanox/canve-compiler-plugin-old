@@ -1,5 +1,7 @@
 package extractor.plugin
 import scala.tools.nsc.Global
+import scala.tools.reflect.ToolBox
+import myUtil.Logging._
 
 /*
  * Note: it is documented in the source, that 
@@ -11,25 +13,43 @@ import scala.tools.nsc.Global
 object TraversalExtraction{
   
   def apply(global: Global)(unit: global.CompilationUnit) = {
-    import global._                      // to have access to typed symbol methods
+    import global._ // to have access to typed symbol methods
     
-    def ownerChain(node: Node, symbol: Symbol): Unit = {
+    // keep in mind we can also use the reflection 
+    // library's supplied Node.recordOwnerChain if it helps
+    def recordOwnerChain(node: Node, symbol: Symbol): Unit = {
       if (!node.ownersTraversed)
       {
-        println(symbol.nameString + " parents: " + symbol.parentSymbols.map(p => p.nameString + " (" + p.id + ")").mkString(","))
         if (symbol.nameString != "<root>") {
           val ownerSymbol = symbol.owner
           val ownerNode = Nodes(global)(ownerSymbol)
           Edges(symbol.owner.id, "declares member", symbol.id)
-          ownerChain(ownerNode, ownerSymbol) 
+          recordOwnerChain(ownerNode, ownerSymbol) 
           node.ownersTraversed = true
         }
       }
     }
-        
+    
+    // Exploration function to trace a tree
+    class TraceTree extends Traverser {
+      override def traverse(tree: Tree): Unit = {
+        tree match {      
+          case _ =>
+            println(Console.GREEN + Console.BOLD + tree.getClass.getSimpleName + " " + Option(tree.symbol).fold("")(_.kindString) + " " + tree.id)
+            if (tree.isType) println("type " + tree.symbol + " (" + tree.symbol.id + ")" )
+            if (tree.isTerm) println("term " + tree.symbol + " " + Option(tree.symbol).fold("")(_.id.toString)) 
+            println(Console.RESET)  
+            super.traverse(tree)         
+        }
+      }
+    }
+    
+    
     class ExtractAll(defParent: Option[global.Symbol]) extends Traverser {
       override def traverse(tree: Tree): Unit = {
-            
+        
+        // see http://www.scala-lang.org/api/2.11.0/scala-reflect/index.html#scala.reflect.api.Trees 
+        // for the different cases, as well as the source of the types matched against
         tree match {
           
           // ignoring imports for now.. we get their symbols wherever they
@@ -48,8 +68,9 @@ object TraversalExtraction{
 
           // captures member usage
           case select: Select =>
+            println("Select at line" + select.pos.line)
             select.symbol.kindString match {
-              case "constructor" => // ignore
+              case "constructor" => println(Console.MAGENTA + Console.BOLD + showRaw(tree) + Console.RESET)
               case "method" =>
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                 
@@ -65,21 +86,26 @@ object TraversalExtraction{
                       List.empty[String]
                       // TODO: indicate no source for this one
                     case _    =>
+                      // the location the called method is defined at
                       val source = callingSymbol.sourceFile.toString
                       val line   = select.pos.line
                       val column = select.pos.column
-                      println("source location of usage of symbol " + select.symbol.nameString + ": " + source + " " + line + "," + column)
+                      //println("source location of usage of symbol " + select.symbol.nameString + ": " + source + " " + line + "," + column)
                   }
                 }
                 
-                ownerChain(node, select.symbol)        
+                recordOwnerChain(node, select.symbol)        
                         
-              case _ =>
+              case _ => 
+                
+                println("Processing select of kind " + select.symbol.kindString + " symbol: " + showRaw(select))
+                
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                 println(defParent.getOrElse("root") + " uses: " + select.symbol + " (" + select.symbol.id + ")" + " of type " + select.symbol.tpe.typeSymbol)
                 
                 val node = Nodes(global)(select.symbol)
-                ownerChain(node, select.symbol)
+                
+                recordOwnerChain(node, select.symbol)
             }
             
           /*
@@ -90,7 +116,7 @@ object TraversalExtraction{
            *    this looks fishy, see this thread:
            *    https://groups.google.com/d/topic/scala-internals/Ms9WUAtokLo/discussion
            */
-          case ident: Ident => println("ident found: " + ident.symbol)
+          case ident: Ident => println("ignoring Ident: " + ident.symbol)
           case typeTree: TypeTree  => // are we missing something by not handling this?
           
           // Captures val definitions (rather than their automatic accessor methods..)
@@ -103,7 +129,7 @@ object TraversalExtraction{
             
             val valueType = s.tpe.typeSymbol // the type that this val instantiates.
             val node = Nodes(global)(valueType)
-            ownerChain(node, valueType)
+            recordOwnerChain(node, valueType)
             
             Edges(s.id, "is of type", valueType.id)
             
@@ -121,6 +147,12 @@ object TraversalExtraction{
             println(defParent.get.id + " declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")
             
             val traverser = new ExtractAll(Some(tree.symbol))
+            if (s.nameString == "get"){             
+              val tracer = new TraceTree
+              tracer.traverse(tree)
+              println(Console.RED + Console.BOLD + showRaw(rhs))
+              println(s.tpe.typeSymbol)
+            }
             traverser.traverse(rhs)
           
           // Capture type definition (classes, traits, objects)
@@ -129,12 +161,12 @@ object TraversalExtraction{
             val ts = tree.tpe.typeSymbol
                         
             val node = Nodes(global)(ts)
-            ownerChain(node, ts)
+            recordOwnerChain(node, ts)
             
             val parentTypeSymbols = parents.map(parent => parent.tpe.typeSymbol).toSet
             parentTypeSymbols.foreach { s => 
               val parentNode = Nodes(global)(s)
-              ownerChain(parentNode, s)
+              recordOwnerChain(parentNode, s)
             }
 
             if (defParent.isDefined) Edges(ts.id, "owned by", defParent.get.id) // TODO: move up for readability
@@ -147,7 +179,7 @@ object TraversalExtraction{
             println(tree.tpe.typeSymbol.kindString + " " + tree.tpe.typeSymbol.nameString + " (" + tree.tpe.typeSymbol.id + ") ")
             //sourceSpan(tree)
             
-            parentTypeSymbols.foreach(s => println("extends: " + s.kindString + " " + s.nameString + " (" + s.id + ") "))
+            //parentTypeSymbols.foreach(s => println("extends: " + s.kindString + " " + s.nameString + " (" + s.id + ") "))
             
             //tree.tpe.declarations.foreach(s => println("declares own member: " + s.kindString + " " + s.nameString + " (" + s.id + ")")) // TODO: need to deduplicate these
             
@@ -155,12 +187,14 @@ object TraversalExtraction{
             body foreach { tree =>
               traverser.traverse(tree)
             }
+            
           case tree =>
             super.traverse(tree) // println(" =========> general traverse call ")
-        }
+         
+        }        
       }
     }
-    
+        
     val traverser = new ExtractAll(None)
     traverser.traverse(unit.body)
     
