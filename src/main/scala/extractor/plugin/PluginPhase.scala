@@ -30,7 +30,7 @@ class PluginPhase(val global: Global)
       units.foreach { unit =>
         if (unit.source.path.endsWith(".scala")) {
           println("canve examining source file" + unit.source.path + "...")
-          TraversalExtraction(t.global)(unit)  
+          TraversalExtraction(t.global)(unit.body)  
         } else
             println("canve skipping non-scala source file: " + unit.source.path)
       }

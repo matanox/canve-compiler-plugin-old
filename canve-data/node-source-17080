@@ -1,0 +1,3 @@
+< in file /tmp/scoverage_snippet6918624425117804829.scala >
+
+class C { println(3) }

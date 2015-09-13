@@ -4,16 +4,18 @@ name := "compiler-plugin"
 
 version := "0.0.1"
 
-scalaVersion  := "2.11.6"
+scalaVersion  := "2.11.7"
 
-crossScalaVersions := Seq("2.10.4", "2.11.6")
+crossScalaVersions := Seq("2.10.4", "2.11.7")
 
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-  "com.lihaoyi" %% "utest" % "0.1.4" % "test"
+  "canve.scoverage" %% "scalac-scoverage-plugin" % "1.1.1",
+  "canve.scoverage" %% "scalac-scoverage-plugin" % "1.1.1" classifier "tests",
+  "com.lihaoyi" %% "utest" % "0.3.1"
 )
 
-testFrameworks += new TestFramework("utest.runner.JvmFramework")
+testFrameworks += new TestFramework("utest.runner.Framework")
 
 unmanagedSourceDirectories in Test <+= baseDirectory(_ / "src" / "test" / "resources")
 
