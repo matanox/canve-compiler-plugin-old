@@ -25,12 +25,12 @@ class PluginPhase(val global: Global)
       
       println("\ncanve extraction starting for project " + PluginArgs.projectName + "...")
       
-      //println(t.global.currentSettings) 
+      println(t.global.currentSettings) 
       
       units.foreach { unit =>
         if (unit.source.path.endsWith(".scala")) {
           println("canve examining source file" + unit.source.path + "...")
-          TraversalExtraction(t.global)(unit.body)  
+          TraversalExtractionWriter(t.global)(unit.body)  
         } else
             println("canve skipping non-scala source file: " + unit.source.path)
       }

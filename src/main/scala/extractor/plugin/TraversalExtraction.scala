@@ -13,9 +13,21 @@ import myUtil.Logging._
  * some settings may skew the results of this code.
  */
 
-object TraversalExtraction extends scoverage.InjectablePluginComponent {
-
+object TraversalExtractionWriter {
   def apply(global: Global)(body: global.Tree) = {
+    val graph: Graph = TraversalExtraction(global)(body)
+    println
+    println("total " + graph.nodes.size + " nodes")
+    println("total " + graph.edges.size + " edges")
+    Output.write
+
+    Unit // Should return Unit    
+  }
+}
+
+object TraversalExtraction {
+
+  def apply(global: Global)(body: global.Tree) : Graph = {
     import global._ // for having access to typed symbol methods
 
     /*
@@ -62,7 +74,6 @@ object TraversalExtraction extends scoverage.InjectablePluginComponent {
           // capture member usage
           case select: Select =>
             select.symbol.kindString match {
-              //case "constructor" => println(Console.MAGENTA + Console.BOLD + showRaw(tree) + Console.RESET)
               case "method" | "constructor" =>
                 println(Console.MAGENTA + Console.BOLD + select.symbol.kindString + Console.RESET)
                 println(Console.MAGENTA + Console.BOLD + showRaw(tree) + Console.RESET)
@@ -72,21 +83,19 @@ object TraversalExtraction extends scoverage.InjectablePluginComponent {
                
                 val node = Nodes(global)(select.symbol)
 
-                // record the location where the method is being called - 
-                // for making that available to the UI.
-                // this is a proof of concept, that only logs it to the console for now.
+                // record the source code location where the symbol is being used by the user 
+                // this is a proof of concept, that only doesn't propagate its information
+                // to the UI in any way yet.
                 if (defParent.isDefined) {
                   val callingSymbol = defParent.get
                   callingSymbol.sourceFile match {
-                    case null =>
-                      List.empty[String]
-                    // TODO: indicate no source for this one
+                    case null => 
                     case _ =>
-                      // the location the called method is defined at
+                      // the source code location of the call made by the caller
                       val source = callingSymbol.sourceFile.toString
                       val line = select.pos.line
                       val column = select.pos.column
-                    //println("source location of usage of symbol " + select.symbol.nameString + ": " + source + " " + line + "," + column)
+                      //println("symbol " + select.symbol.nameString + "is being used in " + source + " " + line + "," + column)
                   }
                 }
 
@@ -177,11 +186,6 @@ object TraversalExtraction extends scoverage.InjectablePluginComponent {
     val traverser = new ExtractionTraversal(None)
     traverser.traverse(body)
 
-    println
-    println("total " + Nodes.list.size + " nodes")
-    println("total " + Edges.list.size + " edges")
-    Output.write
-
-    Unit // Should return Unit
+    Graph(Nodes.list.map(_._2).toList, Edges.list)  
   }
 }

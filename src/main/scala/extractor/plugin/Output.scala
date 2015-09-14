@@ -25,34 +25,11 @@ object Output {
         "id1,edgeKind,id2\n" +
         Edges.list.map { edge =>
           List(edge.id1, edge.edgeKind, edge.id2).mkString(",")}.mkString("\n"))
-    
-    // see https://github.com/cpettitt/graphlib/wiki for Dagre graph specification
-    myUtil.fileUtil.writeOutputFile(PluginArgs.projectName, "dagre", 
-        Nodes.list.map(node => 
-          "g.setNode(" + quote(node._2.id) + ", " +
-                     "{ " + 
-                       "name: " + "\"" + node._2.name + "\"" +
-                       ", " +
-                       "kind: " + "\"" + node._2.kind + "\"" +
-                       ", " + "width:10" +
-                       ", " + "height:10" +
-                     " });")
-          .mkString("\n") +
-          
-          "\n" +
-           
-        Edges.list.map(edge => 
-          "g.setEdge(" + quote(edge.id1) + ", " + 
-                      quote(edge.id2) + ", " +
-                     "{ " +
-                       "edgeKind: " + "\"" + edge.edgeKind + "\"" + 
-                     " });")
-          .mkString("\n"))
           
     Nodes.list.map(_._2).foreach(node =>
       if (node.source.isDefined)
         myUtil.fileUtil.writeOutputFile(PluginArgs.projectName, "node-source-" + node.id, 
-                                        "< in file " + node.fileName.get + " >\n\n" + node.source.get.mkString("\n") + "\n"))
+                                        "< in file " + node.fileName.get + " >\n\n" + node.source.get.mkString + "\n"))
   }
   
 }

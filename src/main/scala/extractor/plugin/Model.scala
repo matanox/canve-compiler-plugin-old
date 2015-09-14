@@ -41,7 +41,9 @@ case class Node(id: Int,
                 name: String,
                 kind: String,
                 notSynthetic: Boolean,
-                source: Option[List[String]],
+                source: Option[String],
                 fileName: Option[String]) {
   var ownersTraversed = false
 }  
+
+case class Graph(nodes: List[Node], edges: List[Edge])
