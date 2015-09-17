@@ -2,6 +2,7 @@ package extractor.plugin
 import tools.nsc.Global
 import scala.collection.SortedSet
 
+
 object PluginArgs {
   var projectName: String = ""
 }  
@@ -24,7 +25,7 @@ class RuntimePlugin(val global: Global) extends tools.nsc.plugins.Plugin {
     for ( opt <- opts ) {
       if (opt.startsWith(projNameArgPrefix)) {
         PluginArgs.projectName = opt.substring(projNameArgPrefix.length)
-        println("canve instrumenting project " + PluginArgs.projectName + "...") 
+        Log("instrumenting project " + PluginArgs.projectName + "...") 
       }
       else
         error("Unknown invocation parameter passed to the CANVE compiler plugin: " + opt)

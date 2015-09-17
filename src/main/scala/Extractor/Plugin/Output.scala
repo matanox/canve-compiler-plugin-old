@@ -1,14 +1,14 @@
 package extractor.plugin
 
-import myUtil.fileUtil._
+import Util.FileIO._
 
 object Output {
   
   def quote(int: Int) = "\"" + int.toString() + "\""
   
   def write = {
-    println("Writing extracted type relations and call graph....")
-    myUtil.fileUtil.writeOutputFile(PluginArgs.projectName, "nodes",
+    Log("writing extracted type relations and call graph...")
+    writeOutputFile(PluginArgs.projectName, "nodes",
         "definition,notSynthetic,id,name,kind\n" +
         Nodes.list.map { node =>
           List(node._2.source match {
@@ -21,15 +21,15 @@ object Output {
                node._2.kind)
                .mkString(",")}.mkString("\n"))
          
-    myUtil.fileUtil.writeOutputFile(PluginArgs.projectName, "edges", 
+    writeOutputFile(PluginArgs.projectName, "edges", 
         "id1,edgeKind,id2\n" +
         Edges.list.map { edge =>
           List(edge.id1, edge.edgeKind, edge.id2).mkString(",")}.mkString("\n"))
           
     Nodes.list.map(_._2).foreach(node =>
       if (node.source.isDefined)
-        myUtil.fileUtil.writeOutputFile(PluginArgs.projectName, "node-source-" + node.id, 
-                                        "< in file " + node.fileName.get + " >\n\n" + node.source.get.mkString + "\n"))
+        writeOutputFile(PluginArgs.projectName, "node-source-" + node.id, 
+                        "< in file " + node.fileName.get + " >\n\n" + node.source.get.mkString + "\n"))
   }
   
 }

@@ -1,15 +1,32 @@
 package extractor.plugin
 import tools.nsc.Global
+import Logging.Utility._
 
-// TODO: add capturing leading comment lines, as a separate `comments` property
+// TODO: capture leading comment lines, as a separate `comments` property.
+//       surely the user will appreciate them, if they can be optionally showed to them.
 
 object SourceExtract {
   
-  private def getSourceBlockHeuristic(source: Iterator[String]): List[String] = {
-
+  private def getSourceBlockHeuristic(global: Global)(symbol: global.Symbol): List[String] = {
+    
     def getStartCol(s: String) = s.indexWhere(c => c !=' ')
-   
-    var body: List[String] = List(source.next)
+
+    val startLine = symbol.pos.line
+    val source = symbol.sourceFile.toString
+    val sourceText = scala.io.Source.fromFile(source).getLines
+    val sourceTextLines = scala.io.Source.fromFile(source).getLines.length
+    
+    if (sourceTextLines < startLine) {
+      println(Console.YELLOW + Console.BOLD + "symbol " + symbolWithId(global)(symbol) + " " +
+                                            "has line " + startLine + " " +
+                                            "for source " + source + " " +
+                                            "but that source file has only " +
+                                            sourceTextLines + " lines!" +
+                                            Console.RESET)
+      return List()    
+    }
+    
+    var body: List[String] = sourceText.drop(startLine-1).toList
     var done = false
     
     var inBracesNest  = 0
@@ -17,8 +34,8 @@ object SourceExtract {
     
     val initialStartCol = getStartCol(body.head)
     
-    while(source.hasNext && !done) {
-      val line = source.next
+    while(sourceText.hasNext && !done) {
+      val line = sourceText.next
       val startCol = getStartCol(line)
       
       if (startCol > initialStartCol) {  
@@ -80,8 +97,8 @@ object SourceExtract {
         /*
          * heuristic based extraction - may be necessary for supporting scala 2.10 so keep it alive
          * (c.f. https://github.com/scoverage/scalac-scoverage-plugin/blob/5d0c92479dff0055f2cf7164439f838b803fe44a/2.10.md)
-         */
-        val blockFromHeuristic = getSourceBlockHeuristic(scala.io.Source.fromFile(source).getLines.drop(line-1))        
+         */        
+        val blockFromHeuristic = getSourceBlockHeuristic(global)(symbol)
         
         /*
          * Extract the source code of the symbol using compiler supplied ranges 
@@ -100,8 +117,6 @@ object SourceExtract {
           " " * firstLineIdentLength + sourceCode.slice(start, end)
         }
         
-        //println(Console.BLUE + Console.BOLD + defLine + Console.RESET)
-        //println(symbol.pos.lineCaret + Console.RESET)
         Some(block)
     } 
   }

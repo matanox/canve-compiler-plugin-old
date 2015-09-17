@@ -1,4 +1,4 @@
-package myUtil
+package Util
 
 /*
  * Note:
@@ -6,14 +6,13 @@ package myUtil
  * being a compiler plugin, only core scala or java libraries accessible to core scala,
  * may be used; external libraries will not work even though the compiler plugin itself will compile  
  */
-
 import java.io.{File}
 import java.nio.file.{Path, Paths, Files}
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileAlreadyExistsException
-import scala.tools.nsc.io.Directory
 
-object fileUtil {  
+object FileIO {  
+  
   val canveRoot = "canve-data"
   
   createDir(canveRoot)
@@ -24,7 +23,6 @@ object fileUtil {
   def writeOutputFile(dir: String, fileName: String, fileText: String) {
     createDir(canveRoot + "/" + dir)
     scala.tools.nsc.io.File(canveRoot + "/" + dir + "/" + fileName).writeAll(fileText)
-    //Files.write(Paths.get(outDir + "/" + fileName), fileText.getBytes(StandardCharsets.UTF_8))
   }
   
   //

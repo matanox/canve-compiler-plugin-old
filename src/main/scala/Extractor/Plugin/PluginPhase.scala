@@ -23,16 +23,18 @@ class PluginPhase(val global: Global)
   override def newPhase(prev: Phase): Phase = new Phase(prev) {
     override def run() {
       
-      println("\ncanve extraction starting for project " + PluginArgs.projectName + "...")
+      val projectName = PluginArgs.projectName
       
-      println(t.global.currentSettings) 
+      Log("extraction starting for project " + projectName + " (" + units.length + " compilation units)")
+      
+      Log(t.global.currentSettings.toString) // TODO: remove or move to new compiler plugin dedicated log file
       
       units.foreach { unit =>
         if (unit.source.path.endsWith(".scala")) {
-          println("canve examining source file" + unit.source.path + "...")
-          TraversalExtractionWriter(t.global)(unit.body)  
+          Log("examining source file" + unit.source.path + "...")
+          TraversalExtractionWriter(t.global)(unit)(projectName)
         } else
-            println("canve skipping non-scala source file: " + unit.source.path)
+            Log("skipping non-scala source file: " + unit.source.path)
       }
     }
 

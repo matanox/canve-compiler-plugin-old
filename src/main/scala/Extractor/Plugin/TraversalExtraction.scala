@@ -1,7 +1,6 @@
 package extractor.plugin
 import scala.tools.nsc.Global
-//import scala.tools.reflect.ToolBox
-import myUtil.Logging._
+import Logging.Utility._
 
 /*
  * TODO: turn this comment into an actionable such as logging the flags for forensics,
@@ -14,12 +13,13 @@ import myUtil.Logging._
  */
 
 object TraversalExtractionWriter {
-  def apply(global: Global)(body: global.Tree) = {
-    val graph: Graph = TraversalExtraction(global)(body)
-    println
-    println("total " + graph.nodes.size + " nodes")
-    println("total " + graph.edges.size + " edges")
+  def apply(global: Global)(unit: global.CompilationUnit)(projectName: String) = {
+    val graph: Graph = TraversalExtraction(global)(unit.body)
+
+    Log(graph.nodes.size + " entities so far in project " + projectName)
+    Log(graph.edges.size + " edges so far for project " + projectName)
     Output.write
+    Log("done examining source file" + unit.source.path + "...")
 
     Unit // Should return Unit    
   }
@@ -55,10 +55,10 @@ object TraversalExtraction {
       override def traverse(tree: Tree): Unit = {
         tree match {
           case _ =>
-            println(Console.GREEN + Console.BOLD + tree.getClass.getSimpleName + " " + Option(tree.symbol).fold("")(_.kindString) + " " + tree.id)
-            if (tree.isType) println("type " + tree.symbol + " (" + tree.symbol.id + ")")
-            if (tree.isTerm) println("term " + tree.symbol + " " + Option(tree.symbol).fold("")(_.id.toString))
-            println(Console.RESET)
+            Log(Console.GREEN + Console.BOLD + tree.getClass.getSimpleName + " " + Option(tree.symbol).fold("")(_.kindString) + " " + tree.id)
+            if (tree.isType) Log("type " + tree.symbol + " (" + tree.symbol.id + ")")
+            if (tree.isTerm) Log("term " + tree.symbol + " " + Option(tree.symbol).fold("")(_.id.toString))
+            Log(Console.RESET)
             super.traverse(tree)
         }
       }
@@ -75,9 +75,7 @@ object TraversalExtraction {
           case select: Select =>
             select.symbol.kindString match {
               case "method" | "constructor" =>
-                println(Console.MAGENTA + Console.BOLD + select.symbol.kindString + Console.RESET)
-                println(Console.MAGENTA + Console.BOLD + showRaw(tree) + Console.RESET)
-                println(Console.MAGENTA + Console.BOLD + defParent.isDefined + Console.RESET)
+                if (defParent.isEmpty) Warning.logMemberParentLacking(global)(select.symbol)
 
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
                
@@ -95,7 +93,7 @@ object TraversalExtraction {
                       val source = callingSymbol.sourceFile.toString
                       val line = select.pos.line
                       val column = select.pos.column
-                      //println("symbol " + select.symbol.nameString + "is being used in " + source + " " + line + "," + column)
+                      //Log("symbol " + select.symbol.nameString + "is being used in " + source + " " + line + "," + column)
                   }
                 }
 
@@ -103,7 +101,7 @@ object TraversalExtraction {
 
               case _ =>
 
-                println("Processing select of kind " + select.symbol.kindString + " symbol: " + showRaw(select))
+                //Log("Processing select of kind " + select.symbol.kindString + " symbol: " + showRaw(select))
 
                 if (defParent.isDefined) Edges(defParent.get.id, "uses", select.symbol.id)
 
@@ -117,7 +115,7 @@ object TraversalExtraction {
            *    https://groups.google.com/d/topic/scala-internals/Ms9WUAtokLo/discussion
            *    https://groups.google.com/forum/#!topic/scala-internals/noaEpUb6uL4
            */
-          case ident: Ident => println("ignoring Ident: " + ident.symbol)
+          case ident: Ident => Log("ignoring Ident: " + ident.symbol)
 
           // Capture val definitions (rather than their automatic accessor methods..)
           case ValDef(mods: Modifiers, name: TermName, tpt: Tree, rhs: Tree) =>
@@ -147,8 +145,8 @@ object TraversalExtraction {
             if (symbol.nameString == "get") {
               //val tracer = new TraceTree
               //tracer.traverse(tree)
-              println(Console.RED + Console.BOLD + showRaw(rhs))
-              println(symbol.tpe.typeSymbol)
+              //Log(Console.RED + Console.BOLD + showRaw(rhs))
+              //Log(symbol.tpe.typeSymbol)
             }
             traverser.traverse(rhs)
 
@@ -168,8 +166,9 @@ object TraversalExtraction {
 
             // Throw this check away if it hasn't written to the console for a while
             if (defParent.isDefined)
-              if (defParent.get.id != typeSymbol.owner.id) println(Console.YELLOW + "parent not owner!")
-
+              if (defParent.get.id != typeSymbol.owner.id)
+                Warning.logParentNotOwner(global)(defParent.get, typeSymbol.owner)
+                
             parentTypeSymbols.foreach(s =>
               Edges(typeSymbol.id, "extends", s.id))
 
