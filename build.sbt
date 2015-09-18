@@ -11,7 +11,6 @@ crossScalaVersions := Seq("2.10.4", "2.11.7")
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
   "canve" %% "compiler-plugin-unit-test-lib" % "1.0.0",
-  "canve" %% "compiler-plugin-unit-test-lib" % "1.0.0" classifier "tests",
   "com.lihaoyi" %% "utest" % "0.3.1"
 )
 

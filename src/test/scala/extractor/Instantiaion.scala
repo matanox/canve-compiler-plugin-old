@@ -2,9 +2,9 @@ import extractor.plugin.{TraversalExtraction, Graph}
 import scala.tools.nsc.Global
 import utest._
 import utest.ExecutionContext.RunNow
-import scoverage.ScoverageCompiler
+import compilerPluginUnitTest.InjectedCompiler
 
-class TraversalExtractionTester extends scoverage.InjectablePluginComponent {
+class TraversalExtractionTester extends compilerPluginUnitTest.InjectablePluginComponent {
   def apply(global: Global)(body: global.Tree) = {
     TraversalExtraction(global)(body)    
   }  
@@ -17,7 +17,7 @@ case class InstantiationCycleTester() extends TraversalExtractionTester {
 }
 
 object MyTestSuite extends TestSuite {
-  val compiler = ScoverageCompiler.default(new InstantiationCycleTester)
+  val compiler = InjectedCompiler.default(new InstantiationCycleTester)
   assert(!compiler.reporter.hasErrors)
   
   val tests = TestSuite {
