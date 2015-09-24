@@ -10,8 +10,10 @@ crossScalaVersions := Seq("2.10.4", "2.11.7")
 
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-  "canve" %% "compiler-plugin-unit-test-lib" % "1.0.0",
-  "com.lihaoyi" %% "utest" % "0.3.1"
+  "org.apache.tinkerpop" % "tinkergraph-gremlin" % "3.0.1-incubating",
+  "canve" %% "compiler-plugin-unit-test-lib" % "1.0.0" % "test",
+  "com.lihaoyi" %% "utest" % "0.3.1" % "test",
+  "canve" %% "simple-graph" % "0.0.1"
 )
 
 testFrameworks += new TestFramework("utest.runner.Framework")

@@ -5,6 +5,7 @@ project/target/*
 .idea_modules/*
 *.iml
 /bin/
-.cache
+.cache*
 .classpath
 .project
+.settings/

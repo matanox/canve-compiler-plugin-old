@@ -33,17 +33,21 @@ object Edges {
     list = Edge(id1, edgeKind, id2) :: list
 }
 
-case class Edge(id1: Int,
-                edgeKind: String,
-                id2: Int) 
+case class Edge
+  (id1: Int,
+   edgeKind: String,
+   id2: Int) extends org.canve.simpleGraph.AbstractEdge[Int]
                 
-case class Node(id: Int,
-                name: String,
-                kind: String,
-                notSynthetic: Boolean,
-                source: Option[String],
-                fileName: Option[String]) {
+case class Node
+  (id: Int,
+   name: String,
+   kind: String,
+   notSynthetic: Boolean,
+   source: Option[String],
+   fileName: Option[String]) extends org.canve.simpleGraph.AbstractVertex[Int] {
+  
   var ownersTraversed = false
+  
 }  
 
 case class Graph(nodes: List[Node], edges: List[Edge])
