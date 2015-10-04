@@ -1,4 +1,6 @@
 /*
+
+/*
  * Tinkerpop initial implementation. 
  * Cons: no major graph database currently supports tinkerpop 3,
  *       except IBM BlueMix which is cheap but probably not full-fledged
@@ -52,3 +54,4 @@ abstract class TinkerBasedGraph extends GraphApi[Node, Edge] with TinkerScalaBri
     addVertex(Map("id" -> node.id))    
   }  
 }
+*/

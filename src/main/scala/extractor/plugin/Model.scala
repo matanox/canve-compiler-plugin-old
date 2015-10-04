@@ -1,14 +1,20 @@
 package extractor.plugin
 import tools.nsc.Global
+import performance.Counters
+import org.canve.simpleGraph.{AbstractVertex, AbstractEdge}
 
 object Nodes {
   
-  var list: Map[Int, Node] = Map()
+  val existingCalls = Counters("existing node calls")
+  
+  var map: Map[Int, Node] = Map()
 
   def apply(global: Global)(s: global.Symbol): Node = {
     
-    if (list.contains(s.id))
-      list.get(s.id).get
+    if (map.contains(s.id)) {
+      existingCalls.increment
+      map.get(s.id).get      
+    }
     else
     {
       val newNode = s.sourceFile match {
@@ -18,7 +24,7 @@ object Nodes {
           Node(s.id, s.nameString, s.kindString, !(s.isSynthetic), SourceExtract(global)(s), Some(s.sourceFile.toString))
       }
       
-      list += (s.id -> newNode)
+      map += (s.id -> newNode)
       newNode
     }
   }
@@ -27,16 +33,25 @@ object Nodes {
 
 object Edges {
   
-  var list: List[Edge] = List()
+  val existingCalls = Counters("existing edge calls")
   
-  def apply(id1: Int, edgeKind: String, id2: Int): Unit = 
-    list = Edge(id1, edgeKind, id2) :: list
+  var set: Set[Edge] = Set()
+  
+  def apply(id1: Int, edgeKind: String, id2: Int): Unit = {
+    
+    val edge = Edge(id1, edgeKind, id2)
+    if (set.contains(edge)) 
+      existingCalls.increment
+    else
+      set = set + edge
+      
+  } 
 }
 
 case class Edge
   (id1: Int,
    edgeKind: String,
-   id2: Int) extends org.canve.simpleGraph.AbstractEdge[Int]
+   id2: Int) extends AbstractEdge[Int]
                 
 case class Node
   (id: Int,
@@ -44,10 +59,10 @@ case class Node
    kind: String,
    notSynthetic: Boolean,
    source: Option[String],
-   fileName: Option[String]) extends org.canve.simpleGraph.AbstractVertex[Int] {
+   fileName: Option[String]) extends AbstractVertex[Int] {
   
   var ownersTraversed = false
   
 }  
 
-case class Graph(nodes: List[Node], edges: List[Edge])
+case class Graph(nodes: Set[Node], edges: Set[Edge])

@@ -37,17 +37,22 @@ object TraversalExtraction {
      * the project being compiled.  
      */
     def recordOwnerChain(node: Node, symbol: Symbol): Unit = {
-      // Note: there is also the reflection library supplied Node.ownerChain method,
-      //       for now, the recursive iteration used here instead seems as good.
-      if (!node.ownersTraversed) {
-        if (symbol.nameString != "<root>") {
-          val ownerSymbol = symbol.owner
-          val ownerNode = Nodes(global)(ownerSymbol)
-          Edges(symbol.owner.id, "declares member", symbol.id)
-          recordOwnerChain(ownerNode, ownerSymbol)
-          node.ownersTraversed = true
+      
+      def recordOwnerChainImpl(node: Node, symbol: Symbol): Unit = {
+        // Note: there is also the reflection library supplied Node.ownerChain method,
+        //       for now, the recursive iteration used here instead seems as good.
+        if (!node.ownersTraversed) {
+          if (symbol.nameString != "<root>") {
+            val ownerSymbol = symbol.owner
+            val ownerNode = Nodes(global)(ownerSymbol)
+            Edges(symbol.owner.id, "declares member", symbol.id)
+            recordOwnerChainImpl(ownerNode, ownerSymbol)
+            node.ownersTraversed = true
+          }
         }
       }
+      
+      recordOwnerChainImpl(node, symbol)
     }
 
     // Exploration function to trace a tree
@@ -164,7 +169,7 @@ object TraversalExtraction {
               recordOwnerChain(parentNode, s)
             }
 
-            // Throw this check away if it hasn't written to the console for a while
+            // This has actually been seen in the console one time, so keep it
             if (defParent.isDefined)
               if (defParent.get.id != typeSymbol.owner.id)
                 Warning.logParentNotOwner(global)(defParent.get, typeSymbol.owner)
@@ -185,6 +190,7 @@ object TraversalExtraction {
     val traverser = new ExtractionTraversal(None)
     traverser.traverse(body)
 
-    Graph(Nodes.list.map(_._2).toList, Edges.list)  
+    performance.Counters.report((report: String) => Log(report))
+    Graph(Nodes.map.map(_._2).toSet, Edges.set)    
   }
 }
