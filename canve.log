@@ -1,0 +1,27 @@
+ignoring Ident: package <empty>
+ignoring Ident: value a
+ignoring Ident: value x$1
+ignoring Ident: <none>
+ignoring Ident: variable acc
+ignoring Ident: variable acc
+ignoring Ident: value a
+ignoring Ident: variable acc
+ignoring Ident: value a
+ignoring Ident: object Bar
+ignoring Ident: value g
+(existing node calls,performance.Counter@64ea32ca): (existing edge calls,performance.Counter@53eb05ca)
+ignoring Ident: package <empty>
+ignoring Ident: value a
+ignoring Ident: value x$1
+ignoring Ident: <none>
+ignoring Ident: variable acc
+ignoring Ident: variable acc
+ignoring Ident: value a
+ignoring Ident: variable acc
+ignoring Ident: value a
+ignoring Ident: object Bar
+ignoring Ident: value g
+(existing node calls,performance.Counter@64ea32ca): (existing edge calls,performance.Counter@53eb05ca)
+ignoring Ident: package <empty>
+ignoring Ident: value g
+(existing node calls,performance.Counter@64ea32ca): (existing edge calls,performance.Counter@53eb05ca)

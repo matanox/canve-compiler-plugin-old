@@ -1,5 +1,7 @@
 import sbt._
 import Keys._
+import sbtassembly._
+import AssemblyKeys._
 
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq(
@@ -21,7 +23,23 @@ object BuildSettings {
       "com.lihaoyi" %% "utest" % "0.3.1" % "test"
     ),
     
-    testFrameworks += new TestFramework("utest.runner.Framework")
+    testFrameworks += new TestFramework("utest.runner.Framework"),
+
+    /*
+     * take care of including all non scala core library dependencies in the build artifact 
+     */
+    test in assembly := {},
+    jarName in assembly := name.value + "_" + scalaVersion.value + "-" + version.value + "-assembly.jar",
+    assemblyOption in assembly ~= { _.copy(includeScala = false) },
+    packagedArtifact in Compile in packageBin := {
+      val temp = (packagedArtifact in Compile in packageBin).value
+      val (art, slimJar) = temp
+      val fatJar = new File(crossTarget.value + "/" + (jarName in assembly).value)
+      val _ = assembly.value
+      IO.copy(List(fatJar -> slimJar), overwrite = true)
+      println("Using sbt-assembly to package library dependencies into a fat jar for publication")
+      (art, slimJar)
+    }
     
   )
 }
@@ -33,5 +51,5 @@ object MyBuild extends Build {
     "root",
     file("."),
     settings = buildSettings
-  )
+  ) 
 }
