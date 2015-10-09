@@ -17,6 +17,7 @@ object BuildSettings {
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
       "org.scala-lang" % "scala-library" % scalaVersion.value % "provided",
+      "com.github.tototoshi" %% "scala-csv" % "1.2.2",
       //"org.apache.tinkerpop" % "tinkergraph-gremlin" % "3.0.1-incubating",
       "canve" %% "simple-graph" % "0.0.1",
       "canve" %% "compiler-plugin-unit-test-lib" % "1.0.0" % "test",

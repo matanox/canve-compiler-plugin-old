@@ -21,8 +21,8 @@ object FileIO {
   // write string to file, overwriting if file already exists
   //
   def writeOutputFile(dir: String, fileName: String, fileText: String) {
-    createDir(canveRoot + "/" + dir)
-    scala.tools.nsc.io.File(canveRoot + "/" + dir + "/" + fileName).writeAll(fileText)
+    createDir(canveRoot + File.separator + dir)
+    scala.tools.nsc.io.File(canveRoot + File.separator + dir + File.separator + fileName).writeAll(fileText)
   }
   
   //
