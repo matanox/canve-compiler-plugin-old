@@ -1,4 +1,4 @@
-package extractor.plugin
+package org.canve.compilerPlugin
 import scala.tools.nsc.Global
 import Logging.Utility._
 

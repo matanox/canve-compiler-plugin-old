@@ -1,4 +1,4 @@
-package extractor.plugin
+package org.canve.compilerPlugin
 import tools.nsc.Global
 import performance.Counters
 import org.canve.simpleGraph.{AbstractVertex, AbstractEdge}

@@ -1,5 +1,5 @@
 package deprecatedGraphApi
-import extractor.plugin.{Node, Edge}
+import org.canve.compilerPlugin.{Node, Edge}
 
 /*
  * Any usage should go through this abstract class,

@@ -1,4 +1,4 @@
 <plugin>
-    <name>extractor</name>
-    <classname>extractor.plugin.RuntimePlugin</classname>
+    <name>canveCompilerPlugin</name>
+    <classname>org.canve.compilerPlugin.RuntimePlugin</classname>
 </plugin>

@@ -1,4 +1,4 @@
-package extractor.plugin
+package org.canve.compilerPlugin
 import Logging._
 
 /*

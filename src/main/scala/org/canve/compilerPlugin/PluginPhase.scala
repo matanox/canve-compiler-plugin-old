@@ -1,4 +1,4 @@
-package extractor.plugin
+package org.canve.compilerPlugin
 import scala.collection.{SortedSet, mutable}
 import scala.tools.nsc.{Global, Phase}
 import tools.nsc.plugins.PluginComponent

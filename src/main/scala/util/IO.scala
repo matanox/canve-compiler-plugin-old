@@ -1,4 +1,4 @@
-package Util
+package util
 
 /*
  * Note:
@@ -11,23 +11,23 @@ import java.nio.file.{Path, Paths, Files}
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileAlreadyExistsException
 
-object FileIO {  
+object CanveDataIO {  
   
   val canveRoot = "canve-data"
   
   createDir(canveRoot)
   
-  //
-  // write string to file, overwriting if file already exists
-  //
+  /*
+   * write string to file, overwriting if file already exists
+   */
   def writeOutputFile(dir: String, fileName: String, fileText: String) {
     createDir(canveRoot + File.separator + dir)
     scala.tools.nsc.io.File(canveRoot + File.separator + dir + File.separator + fileName).writeAll(fileText)
   }
-  
-  //
-  // create target folder, if it doesn't already exist
-  //
+
+  /*
+   * create target folder, if it doesn't already exist
+   */
   def createDir(outDir: String) = {
     val outDirObj = Paths.get(outDir)
     try {
@@ -37,6 +37,14 @@ object FileIO {
       case e: Throwable => throw(e)  
     }
   }
+  
+  /*
+   * get sub-directories
+   */
+  def getSubDirectories(dir: String): Array[File] = {
+    new File(dir).listFiles.filter(_.isDirectory())
+  }
+  
 } 
 
 

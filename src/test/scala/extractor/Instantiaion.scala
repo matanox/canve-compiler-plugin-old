@@ -1,6 +1,6 @@
 package extractor.test
 
-import extractor.plugin.{TraversalExtraction, Graph, Node, Edge}
+import org.canve.compilerPlugin.{TraversalExtraction, Graph, Node, Edge}
 import scala.tools.nsc.Global
 import utest._
 import utest.ExecutionContext.RunNow
