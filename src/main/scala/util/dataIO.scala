@@ -1,4 +1,4 @@
-package util
+package org.canve.util
 
 /*
  * Note:
@@ -45,6 +45,22 @@ object CanveDataIO {
     new File(dir).listFiles.filter(_.isDirectory())
   }
   
+  def clearAll = {
+    clearRecursive(new File(canveRoot))
+  }
+  
+  private def clearRecursive(obj: File): Unit = {
+    if (obj.isDirectory) obj.listFiles.foreach(clearRecursive)
+    if (obj.toString != canveRoot.toString) // avoids both deleting it and relying on its existence 
+      safeDelete(obj)
+  }
+  
+  private def safeDelete(obj: File) = {
+    println(obj.toString)
+    if (obj.toString.startsWith(canveRoot)) 
+      obj.delete
+    else 
+      throw new Exception(s"safe delete captured an invalid delete attempt (${obj.toString})")
+  }
+
 } 
-
-

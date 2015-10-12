@@ -6,7 +6,9 @@ import Logging.Utility._
 //       surely the user will appreciate them, if they can be optionally showed to them.
 
 object SourceExtract {
-  
+
+  @deprecated("the heuristics are not needed, as long as -Yrangepos is used",
+              "but since -Yrangepos may crash on scala 2.10 code that uses macros, this might come back") 
   private def getSourceBlockHeuristic(global: Global)(symbol: global.Symbol): List[String] = {
     
     def getStartCol(s: String) = s.indexWhere(c => c !=' ')
@@ -82,8 +84,8 @@ object SourceExtract {
         val source = symbol.sourceFile.toString
         val line   = symbol.pos.line
         val column = symbol.pos.column
-        val start  = symbol.pos.start
-        val end    = symbol.pos.end
+        val start  = symbol.pos.startOrPoint // plain start may crash for scala 2.10 projects
+        val end    = symbol.pos.endOrPoint   // plain end may crash for scala 2.10 projects
 
         if (line == 0) return None  // the compiler provides a line position 0 sometimes,
                                     // whereas line numbers are confirmed to start from 1. 

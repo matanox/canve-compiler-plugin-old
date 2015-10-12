@@ -1,5 +1,5 @@
 package org.canve.compilerPlugin
-import util.CanveDataIO._
+import org.canve.util.CanveDataIO._
 import com.github.tototoshi.csv._
 import java.io.File
 
