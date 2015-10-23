@@ -40,11 +40,17 @@ object CanveDataIO {
   
   /*
    * get sub-directories
+   * TODO: move to lower level util package / layer
    */
-  def getSubDirectories(dir: String): Array[File] = {
-    new File(dir).listFiles.filter(_.isDirectory())
+  def getSubDirectories(dir: String): List[File] = {
+    val directory = new File(dir) 
+    if (!directory.exists) throw new Exception(s"API usage error: cannot invoke this function on a non-existant directory ($dir)") // otherwise ugly java exception 
+    directory.listFiles.toList.filter(_.isDirectory())
   }
   
+  /*
+   * clear the entire canve data directory, while leaving its root there
+   */
   def clearAll = {
     clearRecursive(new File(canveRoot))
   }
@@ -56,8 +62,7 @@ object CanveDataIO {
   }
   
   private def safeDelete(obj: File) = {
-    println(obj.toString)
-    if (obj.toString.startsWith(canveRoot)) 
+    if (obj.toString.startsWith(canveRoot)) // TODO: improve a la http://stackoverflow.com/questions/33083397/filtering-upwards-path-traversal-in-java-or-scala/33084369#33084369 
       obj.delete
     else 
       throw new Exception(s"safe delete captured an invalid delete attempt (${obj.toString})")
